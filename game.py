@@ -138,19 +138,21 @@ def color_grid(old_board: np.array):
     board = np.rot90(board, k=3)
     
     fig, ax = plt.subplots(figsize=(6, 6))
+    fig.patch.set_facecolor('#af998c')
     
     for i in range(board.shape[0]):
         for j in range(board.shape[1]):
             value = board[i, j]
             color = COLOR_MAP.get(value, "#FFFFFF")  # Default to white if color not found
-            patch = mpatches.Rectangle((i, j), 1, 1, facecolor=color, edgecolor='black')
+            # patch = mpatches.Rectangle((i, j), 1, 1, facecolor=color, edgecolor='black', linewidth=8)
+            patch = mpatches.FancyBboxPatch((i, j), 0.8, 0.8, boxstyle="round,pad=0.1,rounding_size=0.2", facecolor=color, edgecolor='#89786e', linewidth=5)
             ax.add_patch(patch)
-            ax.text(i + 0.5, j + 0.5, str(int(value)), ha='center', va='center', color='black', fontsize=12)
+            ax.text(i + 0.4, j + 0.4, str(int(value)), ha='center', va='center', color='#181818', fontsize=20, fontweight='bold')
     
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_xlim(0, board.shape[1])
-    ax.set_ylim(0, board.shape[0])
+    ax.set_xlim(-0.2, board.shape[1])
+    ax.set_ylim(-0.2, board.shape[0])
     ax.set_aspect('equal')
     plt.axis('off')
 
@@ -197,7 +199,7 @@ def game():
         
 def display_board(board: np.array, screen, clock) -> None:
     plot_surface  = color_grid(board)
-    screen.fill((255, 255, 255))
+    screen.fill((24, 24, 24))
     screen.blit(plot_surface, (50, 50))
     pygame.display.flip()
     clock.tick(30)
@@ -208,4 +210,6 @@ if __name__ == "__main__":
         game()
     except KeyboardInterrupt:
         print("Killing game")
-    pygame.quit()
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                pygame.quit()
