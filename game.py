@@ -8,20 +8,20 @@ COLOR_MAP = {
     0: "#FFFFFF",
     2: "#f5cf7d",
     4: "#f5c55d",
-    8: "#f0bc4d",
-    16: "#fcbc30",
-    32: "#f5aa0a",
-    64: "#fa8b14",
-    128: "#ff8503",
-    256: "#f78239",
-    512: "#f78239",
-    1024: "#fa7420",
-    2048: "#fa6305",
-    4096: "#fa5923",
-    8192: "#fa4205",
-    16384: "#fa2605",
-    32768: "#f5372a",
-    65536: "#f71302",
+    8: "#f4b27a",
+    16: "#f69664",
+    32: "#f67d60",
+    64: "#f75e3e",
+    128: "#eccd72",
+    256: "#edcc61",
+    512: "#ecc749",
+    1024: "#ecc43f",
+    2048: "#ebc22c",
+    4096: "#f0666d",
+    8192: "#f04b59",
+    16384: "#e14338",
+    32768: "#6fb6d3",
+    65536: "#5ea1dc",
 }
 
 def new_board() -> np.array:
@@ -30,7 +30,7 @@ def new_board() -> np.array:
 def select_location(board: np.array) -> tuple[int, int]:
     zero_positions = (board == 0)
     true_indices = np.argwhere(zero_positions)
-    if not np.any(true_indices):
+    if not len(true_indices):
         return None
 
     random_index = true_indices[np.random.choice(len(true_indices))]
@@ -72,12 +72,11 @@ def play_up(board: np.array = None) -> tuple[np.array, int]:
         #sum all values together
         free_row = 0
         for row in range(3):
-            if new_board[row, col] != 0:
-                if new_board[row, col] == new_board[row + 1, col]:
-                    new_board[row, col] *= 2
-                    local_score += new_board[row, col] #increase score
-                    new_board[row + 1, col] = 0
-                    
+            if new_board[row, col] == new_board[row + 1, col] and new_board[row, col] != 0:
+                new_board[row, col] *= 2
+                local_score += new_board[row, col] #increase score
+                new_board[row + 1, col] = 0
+            if new_board[row, col] != 0:                    
                 new_board[free_row, col] = new_board[row, col]
                 if row != free_row:
                     new_board[row, col] = 0
@@ -122,11 +121,16 @@ def play(board: np.array, move: int) -> tuple[bool, np.array, int]:
 def player_move(board: np.array) -> tuple[np.array, int]:
     punish = 0
     old_moves = []
+    chosen_moves = set()
     while True:
         move = user_unput(punish, old_moves)
         valid, new_board, local_score = play(board, move)
+        chosen_moves.add(move)
         if valid:
             return new_board, local_score
+        if chosen_moves == {1, 2, 3, 4}:
+            return board, 0
+            
         punish += 1
 
 def color_grid(old_board: np.array):
@@ -170,39 +174,38 @@ def game():
     location = select_location(board)
     value = np.random.choice([2, 4], p = [0.9, 0.1])
     board[location] = value
-    # location = select_location(board)
-    # value = np.random.choice([2, 4], p = [0.9, 0.1])
-    # board[location] = value
+
     score = 0
     print(f"Score = {score}")
     
     while True:
+        # print(f"prelocation_board: {board=}")
         location = select_location(board)
         if location is None:
             print("\n=========\nGame Over\n=========")
+            display_board(board, screen, clock)
             return None
         
         value = np.random.choice([2, 4], p = [0.9, 0.1])
         board[location] = value
         
-        #plot it all
-        plot_surface  = color_grid(board)
-        screen.fill((255, 255, 255))
-        screen.blit(plot_surface, (50, 50))
-        pygame.display.flip()
-        clock.tick(30)
+        display_board(board, screen, clock)
         
         board, local_score = player_move(board)
         score += local_score
         print(f"Score = {score}")
         
+def display_board(board: np.array, screen, clock) -> None:
+    plot_surface  = color_grid(board)
+    screen.fill((255, 255, 255))
+    screen.blit(plot_surface, (50, 50))
+    pygame.display.flip()
+    clock.tick(30)
 
-        
 
 if __name__ == "__main__":
     try:
         game()
-        input = input("Press enter to close game")
     except KeyboardInterrupt:
         print("Killing game")
     pygame.quit()
